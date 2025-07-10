@@ -1,0 +1,211 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "command": "=ffmpeg -i /data/input.mp4 \\\n-vf \"drawtext=fontfile=/usr/share/fonts/custom/Kanit-Medium.ttf:text='Hi Jaruphat':fontcolor=white:fontsize=64:x=(w-text_w)/2:y=(h/2)-40:box=1:boxcolor=black@0.5:boxborderw=10,\\\ndrawtext=fontfile=/usr/share/fonts/custom/Kanit-Medium.ttf:text='รองรับภาษาไทยนะครับ':fontcolor=white:fontsize=64:x=(w-text_w)/2:y=(h/2)+40:box=1:boxcolor=black@0.5:boxborderw=10\" \\\n-codec:a copy /data/output.mp4"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        40,
+        180
+      ],
+      "id": "a1d639ce-e3e9-480d-b30c-7caea3ed76f2",
+      "name": "FFMpeg"
+    },
+    {
+      "parameters": {
+        "command": "=python -c \"import sys, os; os.environ['TYPHOON_OCR_API_KEY'] = '<YOUR TYPHOON KEY>'; from typhoon_ocr import ocr_document; sys.stdout.reconfigure(encoding='utf-8'); input_path = sys.argv[1]; text = ocr_document(input_path); print(text)\" \"/doc/{{$json[\"fileName\"]}}\"\n"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        500,
+        180
+      ],
+      "id": "26b7d615-cb74-4870-b2d3-22a36eb7ffe4",
+      "name": "TyphoonOCR"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/doc/*",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        320,
+        180
+      ],
+      "id": "97a59d15-91d0-453d-82ba-7baa827112fd",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "content": "## FFMpeg Verify\n1. นำไฟล์ input.mp3 ใส่เข้าไปใน folder /data/\n2. edit ชื่อ font ที่เราได้ใส่เข้าไปใน folder /fonts/\n3. รอดูผล output.mp4 จะถูกสร้างมาใน folder /data/",
+        "height": 400
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "77cac625-7ab0-4bc9-ae96-4ea41db18fd8",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Typhoon OCR Verfiy\n1. นำไฟล์เอกสาร.pdf ใส่เข้าไปใน folder /doc/\n2. edit <TyphoonOCR>\n3. รอดู output ว่าสามารถใช้งานได้ปกติ",
+        "height": 400,
+        "width": 440,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        280,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "89796588-d5c4-4b2a-97b7-286481470b62",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -520,
+        180
+      ],
+      "id": "f886771c-a2c1-4957-923b-5533a4b9d7ec",
+      "name": "When chat message received",
+      "webhookId": "37cbf5b0-959d-4b63-849a-f2a5247f0619"
+    },
+    {
+      "parameters": {
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -300,
+        180
+      ],
+      "id": "cf03bd70-6825-4f31-a61d-543da8b44226",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "=llama3:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -280,
+        60
+      ],
+      "id": "f24096b2-1bd0-447e-9a04-a5d9797fc048",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "JvmjqHFqpFo6Mgo3",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Ollama - Model llama3\nCredential: \n- BASE: http://ollama:11434",
+        "height": 400,
+        "width": 540
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -560,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "22d8e79d-4213-48fb-bf58-558a3a5ee904",
+      "name": "Sticky Note2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "FFMpeg": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "TyphoonOCR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TyphoonOCR": {
+      "main": [
+        []
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "FFMpeg",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "98202d57-93d2-4fb1-b950-d276e59f94dd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ec740af1a2cd76453ffc1c197c5b3c66b8ee9fcd44f7dc2e779efb35ee81469a"
+  },
+  "id": "FlMtXdQWaHOniPtz",
+  "tags": []
+}
