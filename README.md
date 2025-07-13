@@ -55,6 +55,7 @@ If you need custom fonts for text processing:
 mkdir fonts
 # Copy your .ttf or .otf font files to the fonts/ directory
 ```
+Link font Kanit form Google Fonts: https://fonts.google.com/specimen/Kanit
 
 ### 3. Create Required Directories
 
